@@ -1,16 +1,28 @@
 pipeline {
     agent any
-    
+
     environment {
-        DOCKER_IMAGE = 'test-php-website01'
+        DOCKER_IMAGE = 'my-php-app'
         DOCKER_TAG = 'latest'
     }
-    
+
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the code from Git
-                checkout scm
+                script {
+                    // Checkout the code from Git using the Git credentials
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/main']],  // Replace 'main' with your default branch
+                        extensions: [],
+                        userRemoteConfigs: [
+                            [
+                                url: 'https://github.com/your-username/your-repo.git',
+                                credentialsId: 'github-credentials'  // This is the ID of the Git credentials
+                            ]
+                        ]
+                    ])
+                }
             }
         }
 
@@ -25,9 +37,8 @@ pipeline {
 
         stage('Test') {
             steps {
-                // Here you can add any tests you want to run, for example:
                 script {
-                    // Run tests (e.g., PHPUnit) inside the container
+                    // Run tests inside the container (for example, checking PHP version)
                     sh 'docker run --rm ${DOCKER_IMAGE}:${DOCKER_TAG} php -v'
                 }
             }
@@ -37,7 +48,6 @@ pipeline {
             steps {
                 script {
                     // Deploy the Docker container to your server (example: using Docker Compose)
-                    // Or, push the image to a container registry
                     echo "Deploying to production..."
                     sh 'docker run -d -p 9000:9000 ${DOCKER_IMAGE}:${DOCKER_TAG}'
                 }
