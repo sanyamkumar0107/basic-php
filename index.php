@@ -1,3 +1,3 @@
 <?php
-echo "Hello, Dockerized PHP Application!";
+echo "Hello,  PHP Application!";
 ?>
