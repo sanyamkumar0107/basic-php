@@ -17,7 +17,7 @@ pipeline {
                         extensions: [],
                         userRemoteConfigs: [
                             [
-                                url: 'https://github.com/your-username/your-repo.git',
+                                url: 'https://github.com/sanyamkumar0107/basic-php.git',
                                 credentialsId: 'github-credentials'  // This is the ID of the Git credentials
                             ]
                         ]
