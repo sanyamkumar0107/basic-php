@@ -1,15 +1,15 @@
 pipeline {
     agent any
-
+    
     environment {
-        IMAGE_NAME = "test-php"
-        DOCKER_REGISTRY = "docker.io"  // e.g., dockerhub, or your private registry
+        DOCKER_IMAGE = 'test-php-website01'
+        DOCKER_TAG = 'latest'
     }
-
+    
     stages {
         stage('Checkout') {
             steps {
-                // Pull the latest changes from the repo
+                // Checkout the code from Git
                 checkout scm
             }
         }
@@ -18,39 +18,30 @@ pipeline {
             steps {
                 script {
                     // Build the Docker image
-                    sh 'docker build -t $DOCKER_REGISTRY/$IMAGE_NAME .'
+                    docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
                 }
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Test') {
+            steps {
+                // Here you can add any tests you want to run, for example:
+                script {
+                    // Run tests (e.g., PHPUnit) inside the container
+                    sh 'docker run --rm ${DOCKER_IMAGE}:${DOCKER_TAG} php -v'
+                }
+            }
+        }
+
+        stage('Deploy') {
             steps {
                 script {
-                    // Log in to Docker registry and push the image
-                    sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD $DOCKER_REGISTRY'
-                    sh 'docker push $DOCKER_REGISTRY/$IMAGE_NAME'
+                    // Deploy the Docker container to your server (example: using Docker Compose)
+                    // Or, push the image to a container registry
+                    echo "Deploying to production..."
+                    sh 'docker run -d -p 9000:9000 ${DOCKER_IMAGE}:${DOCKER_TAG}'
                 }
             }
-        }
-
-        stage('Deploy to Server') {
-            steps {
-                script {
-                    // Assuming you deploy by pulling the image on your server
-                    sh '''
-                        ssh user@server "docker pull $DOCKER_REGISTRY/$IMAGE_NAME"
-                        ssh user@server "docker stop php-app || true"
-                        ssh user@server "docker rm php-app || true"
-                        ssh user@server "docker run -d --name php-app -p 8080:80 $DOCKER_REGISTRY/$IMAGE_NAME"
-                    '''
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            cleanWs()
         }
     }
 }
